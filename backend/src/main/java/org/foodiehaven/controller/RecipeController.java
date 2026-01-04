@@ -1,6 +1,5 @@
 package org.foodiehaven.controller;
 
-// --- MAKE SURE THESE ARE IMPORTED ---
 import org.foodiehaven.dto.RecipeResponse;
 import org.foodiehaven.dto.FullRecipeInfoDTO;
 import org.foodiehaven.service.RecipeService;

@@ -15,7 +15,7 @@ import java.util.List;
 public class Recipe {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increments the ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
     @Column(nullable = false)
     private String title;

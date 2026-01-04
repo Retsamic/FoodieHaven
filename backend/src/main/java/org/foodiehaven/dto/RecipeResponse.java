@@ -12,4 +12,5 @@ public class RecipeResponse {
     private List<String> tasteProfileAnalysis;
     private String description;
     private long id;
+    private List<String> nutritionSummary;
 }

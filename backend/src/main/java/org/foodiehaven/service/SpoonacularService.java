@@ -1,14 +1,11 @@
 package org.foodiehaven.service;
 
-import org.foodiehaven.dto.FullRecipeInfoDTO;
-import org.foodiehaven.dto.SpoonacularRecipeDTO;
-import org.foodiehaven.dto.SpoonacularSearchResponse;
-import org.foodiehaven.dto.TasteWidgetDTO;
+import org.foodiehaven.dto.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,10 +22,11 @@ public class SpoonacularService {
 
     private static final String SEARCH_URL = "https://api.spoonacular.com/recipes/complexSearch";
     private static final String TASTE_URL = "https://api.spoonacular.com/recipes/{id}/tasteWidget.json";
-
+    private static final String INFO_URL = "https://api.spoonacular.com/recipes/{id}/information";
+    private static final String STEPS_URL = "https://api.spoonacular.com/recipes/{id}/analyzedInstructions";
 
     public List<SpoonacularRecipeDTO> searchRecipes(String query) {
-        System.out.println("Calling REAL Spoonacular API for: " + query);
+        System.out.println("Calling Spoonacular API for: " + query);
 
         String urlToCall = UriComponentsBuilder.fromHttpUrl(SEARCH_URL)
                 .queryParam("apiKey", apiKey)
@@ -36,15 +34,11 @@ public class SpoonacularService {
                 .queryParam("addRecipeInformation", true)
                 .queryParam("addRecipeNutrition", true)
                 .toUriString();
-
         try {
             SpoonacularSearchResponse response = restTemplate.getForObject(urlToCall, SpoonacularSearchResponse.class);
-
             if (response == null || response.getResults() == null) {
                 return Collections.emptyList();
             }
-
-            // Return the full, rich list
             return response.getResults();
 
         } catch (Exception e) {
@@ -68,7 +62,6 @@ public class SpoonacularService {
             return null;
         }
     }
-    private static final String INFO_URL = "https://api.spoonacular.com/recipes/{id}/information";
 
     public FullRecipeInfoDTO getFullRecipeInfo(Long recipeId) {
         System.out.println("Getting full information for ID: " + recipeId);
@@ -84,6 +77,19 @@ public class SpoonacularService {
         } catch (Exception e) {
             System.err.println("Error getting full info for ID " + recipeId + ": " + e.getMessage());
             return null;
+        }
+    }
+
+    public List<AnalyzedInstructionDTO> getAnalyzedInstruction(Long recipeId) {
+        System.out.println("Getting recipe steps for ID: " + recipeId);
+
+        String urlToCall = UriComponentsBuilder.fromHttpUrl(STEPS_URL).queryParam("apiKey", apiKey).buildAndExpand(recipeId).toUriString();
+        try{
+            AnalyzedInstructionDTO[] responseArray = restTemplate.getForObject(urlToCall, AnalyzedInstructionDTO[].class);
+            return Arrays.asList(responseArray);
+        } catch (Exception e) {
+            System.err.println("Error getting steps for ID " + recipeId + ": " + e.getMessage());
+            return Collections.emptyList();
         }
     }
 }

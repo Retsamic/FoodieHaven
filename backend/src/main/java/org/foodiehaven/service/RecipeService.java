@@ -1,9 +1,6 @@
 package org.foodiehaven.service;
 
-import org.foodiehaven.dto.FullRecipeInfoDTO;
-import org.foodiehaven.dto.RecipeResponse;
-import org.foodiehaven.dto.SpoonacularRecipeDTO;
-import org.foodiehaven.dto.TasteWidgetDTO;
+import org.foodiehaven.dto.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,22 +20,19 @@ public class RecipeService {
 
         List<SpoonacularRecipeDTO> apiRecipes = spoonacularService.searchRecipes(query);
 
-        return apiRecipes.stream()
-                .map(this::analyzeAndMap)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return apiRecipes.stream().map(this::analyzeAndMap).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private RecipeResponse analyzeAndMap(SpoonacularRecipeDTO recipe) {
         TasteWidgetDTO taste = spoonacularService.getTasteProfile(recipe.getId());
-
-        if (taste == null) {
+        FullRecipeInfoDTO fullRecipe = spoonacularService.getFullRecipeInfo(recipe.getId());
+        if (taste == null || fullRecipe == null) {
             return null;
         }
 
         List<String> analysis = analyzeTasteProfile(taste);
-
-        return new RecipeResponse(recipe.getTitle(), analysis, recipe.getSummary(), recipe.getId());
+        List<String> nutrients = fullRecipe.getNutrition().getNutrients().stream().map(n -> n.getName() + ": " + n.getAmount() + " " + n.getUnit()).collect(Collectors.toList());
+        return new RecipeResponse(recipe.getTitle(), analysis, recipe.getSummary(), recipe.getId(), nutrients);
     }
 
     private List<String> analyzeTasteProfile(TasteWidgetDTO taste) {
@@ -73,12 +67,13 @@ public class RecipeService {
 
     public FullRecipeInfoDTO getRecipeDetails(Long id) {
         FullRecipeInfoDTO fullInfo = spoonacularService.getFullRecipeInfo(id);
+        List<AnalyzedInstructionDTO> fullInstructions = spoonacularService.getAnalyzedInstruction(id);
 
-        if (fullInfo == null) {
+        if (fullInfo == null || fullInstructions == null) {
             return null;
         }
+        fullInfo.setAnalyzedInstructions(fullInstructions);
         return fullInfo;
     }
-
 
 }
